@@ -55,16 +55,16 @@ private:
 public:
 	Bullet();
 	~Bullet();
-	void set_position(Vector2 position) {};
-	void set_speed(Vector2 speed) {};
-	void set_radius(float radius) {};
-	void set_rotation(float rotation) {};
-	void set_life(int life) {};
-	void set_active(bool active) {};
-	void set_color(Color color) {};
-	Vector2 get_position() {};
-	Vector2	get_speed() {};
-	float	get_radius() {};
+	void set_position(Vector2 position) { _position = position; };
+	void set_speed(Vector2 speed) { _speed = speed; };
+	void set_radius(float radius) { _radius = radius; };
+	void set_rotation(float rotation) { _rotation = rotation; };
+	void set_life(int life) { _lifeSpawn = life; };
+	void set_active(bool active) { _active = active; };
+	void set_color(Color color) { _color = color; };
+	Vector2 get_position() { return _position; };
+	Vector2	get_speed() { return _speed; };
+	float	get_radius() { return _radius; };
 	float	get_rotation() {};
 	int		get_life() {};
 	bool	get_active() {};
