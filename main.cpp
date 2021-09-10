@@ -14,6 +14,8 @@
 #define MAX_MEDIUM_METEORS  8
 #define MAX_SMALL_METEORS   16
 
+#define FPS 60
+
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
@@ -49,7 +51,7 @@ private:
 	Vector2 _speed;
 	float   _radius;
 	float   _rotation;
-	int     _lifeSpawn;
+	int     _life;
 	bool    _active;
 	Color   _color;
 public:
@@ -59,16 +61,16 @@ public:
 	void set_speed(Vector2 speed) { _speed = speed; };
 	void set_radius(float radius) { _radius = radius; };
 	void set_rotation(float rotation) { _rotation = rotation; };
-	void set_life(int life) { _lifeSpawn = life; };
+	void set_life(int life) { _life = life; };
 	void set_active(bool active) { _active = active; };
 	void set_color(Color color) { _color = color; };
 	Vector2 get_position() { return _position; };
 	Vector2	get_speed() { return _speed; };
 	float	get_radius() { return _radius; };
-	float	get_rotation() {};
-	int		get_life() {};
-	bool	get_active() {};
-	Color	get_color() {};
+	float	get_rotation() { return _rotation; };
+	int		get_life() { return _life; };
+	bool	get_active() { return _active; };
+	Color	get_color() { return _color; };
 };
 
 class Meteor {
@@ -81,11 +83,16 @@ private:
 public:
 	Meteor();
 	~Meteor();
-	void set_position(Vector2 position) {};
-	void set_speed(Vector2 speed) {};
-	void set_radius(float radius) {};
-	void set_active(bool active) {};
-	void set_color(Color color) {};
+	void set_position(Vector2 position) { _position = position; };
+	void set_speed(Vector2 speed) { _speed = speed; };
+	void set_radius(float radius) { _radius = radius; };
+	void set_active(bool active) { _active = active; };
+	void set_color(Color color) { _color = color; };
+	Vector2 get_position() { return _position; };
+	Vector2 get_speed() { return _speed; };
+	float get_radius() { return _radius; };
+	bool get_active() { return _active; };
+	Color get_color() { return _color; };
 };
 
 //------------------------------------------------------------------------------------
@@ -102,10 +109,10 @@ static bool victory = false;
 static float shipHeight = 0.0f;
 
 Player* player = new Player();
-Bullet* bullet[PLAYER_MAX_SHOOTS] = { 0 };
-Meteor* bigMeteor[MAX_BIG_METEORS] = { 0 };
-Meteor* mediumMeteor[MAX_MEDIUM_METEORS] = { 0 };
-Meteor* smallMeteor[MAX_SMALL_METEORS] = { 0 };
+Bullet* bullet[PLAYER_MAX_SHOOTS];
+Meteor* bigMeteor[MAX_BIG_METEORS];
+Meteor* mediumMeteor[MAX_MEDIUM_METEORS];
+Meteor* smallMeteor[MAX_SMALL_METEORS];
 
 static int midMeteorsCount = 0;
 static int smallMeteorsCount = 0;
@@ -127,11 +134,11 @@ int main(void)
 {
 	// Initialization (Note windowTitle is unused on Android)
 	//---------------------------------------------------------
-	InitWindow(screenWidth, screenHeight, "classic game: asteroids");
+	InitWindow(screenWidth, screenHeight, "un clasico: Asteroids");
 
 	InitGame();
 
-	SetTargetFPS(60);
+	SetTargetFPS(FPS);
 	//--------------------------------------------------------------------------------------
 
 	// Main game loop
@@ -159,8 +166,8 @@ int main(void)
 // Initialize game variables
 void InitGame(void)
 {
-	int posx, posy;
-	int velx, vely;
+	int posX, posY;
+	int velX, velY;
 	bool correctRange = false;
 	victory = false;
 	pause = false;
@@ -170,80 +177,99 @@ void InitGame(void)
 
 	Vector2 aux_player_pos = { screenWidth / 2, screenHeight / 2 - shipHeight / 2 };
 	Vector2 aux_speed = { 0,0 };
-	Vector3 aux_collider = {
-		aux_player_pos.x + sin(player.rotation * DEG2RAD) * (shipHeight / 2.5f), player.position.y - cos(player.rotation * DEG2RAD) * (shipHeight / 2.5f), 12
-	};
 
 	// Initialization player
 	player->set_position(aux_player_pos);
 	player->set_speed(aux_speed);
 	player->set_acceleration(0.0f);
 	player->set_rotation(0.0f);
-	player->set_collider();
 	player->set_color(LIGHTGRAY);
+
+	//this is to set properly the collider
+
+	Vector3 aux_collider = {
+		aux_player_pos.x + sin(player->get_rotation() * DEG2RAD) * (shipHeight / 2.5f), aux_player_pos.y - cos(player->get_rotation() * DEG2RAD) * (shipHeight / 2.5f), 12
+	};//      X            + sin(rotation * DEG2RAD [transformation]) * (shipHeight /2.5f), Y			   - cos(rotation * DEG2RAD) * (shipHeight / 2.5f), 12
+
+	player->set_collider(aux_collider);
 
 	destroyedMeteorsCount = 0;
 
 	// Initialization shoot
 	for (int i = 0; i < PLAYER_MAX_SHOOTS; i++)
 	{
-		shoot[i].position = (Vector2){ 0, 0 };
-		shoot[i].speed = (Vector2){ 0, 0 };
-		shoot[i].radius = 2;
-		shoot[i].active = false;
-		shoot[i].lifeSpawn = 0;
-		shoot[i].color = WHITE;
+		bullet[i] = new Bullet();
+		Vector2 pos_init = { 0,0 };
+		Vector2 speed_init = { 0,0 };
+		float aux_radius = 2.0f;
+		bullet[i]->set_position(pos_init);
+		bullet[i]->set_speed(speed_init);
+		bullet[i]->set_radius(aux_radius);
+		bullet[i]->set_active(false);
+		bullet[i]->set_life(0);
+		bullet[i]->set_color(WHITE);
 	}
 
 	for (int i = 0; i < MAX_BIG_METEORS; i++)
 	{
-		posx = GetRandomValue(0, screenWidth);
+		bigMeteor[i] = new Meteor();
+		posX = GetRandomValue(0, screenWidth);
 
 		while (!correctRange)
 		{
-			if (posx > screenWidth / 2 - 150 && posx < screenWidth / 2 + 150) posx = GetRandomValue(0, screenWidth);
+			if (posX > screenWidth / 2 - 150 && posX < screenWidth / 2 + 150) posX = GetRandomValue(0, screenWidth);
 			else correctRange = true;
 		}
 
 		correctRange = false;
 
-		posy = GetRandomValue(0, screenHeight);
+		posY = GetRandomValue(0, screenHeight);
 
 		while (!correctRange)
 		{
-			if (posy > screenHeight / 2 - 150 && posy < screenHeight / 2 + 150)  posy = GetRandomValue(0, screenHeight);
+			if (posY > screenHeight / 2 - 150 && posY < screenHeight / 2 + 150)  posY = GetRandomValue(0, screenHeight);
 			else correctRange = true;
 		}
 
-		bigMeteor[i].position = (Vector2){ posx, posy };
+		Vector2 pos = { posX,posY };
+
+		bigMeteor[i]->set_position(pos);
 
 		correctRange = false;
-		velx = GetRandomValue(-METEORS_SPEED, METEORS_SPEED);
-		vely = GetRandomValue(-METEORS_SPEED, METEORS_SPEED);
+		velX = GetRandomValue(-METEORS_SPEED, METEORS_SPEED);
+		velY = GetRandomValue(-METEORS_SPEED, METEORS_SPEED);
 
 		while (!correctRange)
 		{
-			if (velx == 0 && vely == 0)
+			if (velX == 0 && velY == 0)
 			{
-				velx = GetRandomValue(-METEORS_SPEED, METEORS_SPEED);
-				vely = GetRandomValue(-METEORS_SPEED, METEORS_SPEED);
+				velX = GetRandomValue(-METEORS_SPEED, METEORS_SPEED);
+				velY = GetRandomValue(-METEORS_SPEED, METEORS_SPEED);
 			}
 			else correctRange = true;
 		}
 
-		bigMeteor[i].speed = (Vector2){ velx, vely };
-		bigMeteor[i].radius = 40;
-		bigMeteor[i].active = true;
-		bigMeteor[i].color = BLUE;
+		Vector2 speed = { velX,velY };
+		float radius = 40.0f;
+
+		bigMeteor[i]->set_speed(speed);
+		bigMeteor[i]->set_radius(radius);
+		bigMeteor[i]->set_active(true);
+		bigMeteor[i]->set_color(BLUE);
 	}
 
 	for (int i = 0; i < MAX_MEDIUM_METEORS; i++)
 	{
-		mediumMeteor[i].position = (Vector2){ -100, -100 };
-		mediumMeteor[i].speed = (Vector2){ 0,0 };
-		mediumMeteor[i].radius = 20;
-		mediumMeteor[i].active = false;
-		mediumMeteor[i].color = BLUE;
+
+		//these meteors won't appear until a big one gets destroyed
+		Vector2 pos = {-100,-100};
+		Vector2 speed = {0,0};
+		mediumMeteor[i] = new Meteor();
+		mediumMeteor[i]->set_position(pos);
+		mediumMeteor[i]->set_speed(speed) = (Vector2){ 0,0 };
+		mediumMeteor[i]->set_radius() = 20;
+		mediumMeteor[i]->set_active() = false;
+		mediumMeteor[i]->set_color() = BLUE;
 	}
 
 	for (int i = 0; i < MAX_SMALL_METEORS; i++)
