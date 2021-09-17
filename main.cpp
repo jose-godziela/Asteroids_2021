@@ -1,7 +1,7 @@
-#include "raylib.h"
-
 #include <cmath>
+#include <iostream>
 
+#include "raylib.h"
 //----------------------------------------------------------------------------------
 // Some Defines
 //----------------------------------------------------------------------------------
@@ -25,6 +25,7 @@ private:
 	Vector2 _speed;
 	float   _acceleration;
 	float   _rotation;
+	float _ship_height;
 	Vector3 _collider;
 	Color   _color;
 public:
@@ -35,16 +36,34 @@ public:
 	void set_speed_Y(float y) { _speed.y = y; };
 	void set_acceleration(float acceleration) { _acceleration = acceleration; };
 	void set_rotation(float rotation) { _rotation = rotation; };
+	void set_ship_height(float height) { _ship_height = height; };
 	void set_collider(Vector3 collider) { _collider = collider; };
 	void set_color(Color color) { _color = color; };
 	Vector2 get_position() { return _position; };
 	Vector2 get_speed() { return _speed; };
 	float get_acceleration() { return _acceleration; };
 	float get_rotation() { return _rotation; };
+	float get_ship_height() { return _ship_height; };
 	Vector3 get_collider() { return _collider; };
 	Color get_color() { return _color; };
 
 };
+
+Player::Player()
+{
+	set_ship_height((PLAYER_BASE_SIZE / 2) / tanf(20 * DEG2RAD));
+	set_position({ static_cast<float>(GetScreenWidth()) / 2, GetScreenHeight() / 2 - get_ship_height()/ 2 });
+	set_speed_X(0);
+	set_speed_Y(0);
+	set_acceleration(0.0f);
+	set_rotation(0.0f);
+	set_color(LIGHTGRAY);
+	set_collider({ get_position().x + sin(get_rotation() * DEG2RAD) * (get_ship_height() / 2.5f), get_position().y - cos(get_rotation() * DEG2RAD) * (get_ship_height() / 2.5f), 12 });
+}
+Player::~Player()
+{
+
+}
 
 class Bullet {
 private:
@@ -74,6 +93,15 @@ public:
 	Color	get_color() { return _color; };
 };
 
+Bullet::Bullet()
+{
+
+}
+Bullet::~Bullet()
+{
+
+}
+
 class Meteor {
 private:
 	Vector2 _position;
@@ -96,20 +124,26 @@ public:
 	Color get_color() { return _color; };
 };
 
+Meteor::Meteor()
+{
+
+}
+Meteor::~Meteor()
+{
+
+}
+
 //------------------------------------------------------------------------------------
 // Global Variables Declaration
 //------------------------------------------------------------------------------------
-static const int screenWidth = 800;
-static const int screenHeight = 450;
 
 static bool gameOver = false;
 static bool pause = false;
 static bool victory = false;
 
 // NOTE: Defined triangle is isosceles with common angles of 70 degrees.
-static float shipHeight = 0.0f;
 
-Player* player = new Player();
+Player* player;
 Bullet* bullet[PLAYER_MAX_BULLETS];
 Meteor* bigMeteor[MAX_BIG_METEORS];
 Meteor* mediumMeteor[MAX_MEDIUM_METEORS];
@@ -135,7 +169,7 @@ int main(void)
 {
 	// Initialization (Note windowTitle is unused on Android)
 	//---------------------------------------------------------
-	InitWindow(screenWidth, screenHeight, "un clasico: Asteroids");
+	InitWindow(800, 450, "un clasico: Asteroids");
 
 	InitGame();
 
@@ -172,28 +206,10 @@ void InitGame(void)
 	bool correctRange = false;
 	victory = false;
 	pause = false;
-
-	shipHeight = (PLAYER_BASE_SIZE / 2) / tanf(20 * DEG2RAD);
-
-
-	Vector2 aux_player_pos = { screenWidth / 2, screenHeight / 2 - shipHeight / 2 };
+		
+	player = new Player();
+	
 	Vector2 aux_speed = { 0,0 };
-
-	// Initialization player
-	player->set_position(aux_player_pos);
-	player->set_speed_X(aux_speed.x);
-	player->set_speed_Y(aux_speed.y);
-	player->set_acceleration(0.0f);
-	player->set_rotation(0.0f);
-	player->set_color(LIGHTGRAY);
-
-	//this is to set properly the collider
-
-	Vector3 aux_collider = {
-		aux_player_pos.x + sin(player->get_rotation() * DEG2RAD) * (shipHeight / 2.5f), aux_player_pos.y - cos(player->get_rotation() * DEG2RAD) * (shipHeight / 2.5f), 12
-	};//      X            + sin(rotation * DEG2RAD [transformation]) * (shipHeight /2.5f), Y			   - cos(rotation * DEG2RAD) * (shipHeight / 2.5f), 12
-
-	player->set_collider(aux_collider);
 
 	destroyedMeteorsCount = 0;
 
@@ -215,21 +231,21 @@ void InitGame(void)
 	for (int i = 0; i < MAX_BIG_METEORS; i++)
 	{
 		bigMeteor[i] = new Meteor();
-		posX = GetRandomValue(0, screenWidth);
+		posX = GetRandomValue(0, GetScreenWidth());
 
 		while (!correctRange)
 		{
-			if (posX > screenWidth / 2 - 150 && posX < screenWidth / 2 + 150) posX = GetRandomValue(0, screenWidth);
+			if (posX > GetScreenWidth() / 2 - 150 && posX < GetScreenWidth() / 2 + 150) posX = GetRandomValue(0, GetScreenWidth());
 			else correctRange = true;
 		}
 
 		correctRange = false;
 
-		posY = GetRandomValue(0, screenHeight);
+		posY = GetRandomValue(0, GetScreenHeight());
 
 		while (!correctRange)
 		{
-			if (posY > screenHeight / 2 - 150 && posY < screenHeight / 2 + 150)  posY = GetRandomValue(0, screenHeight);
+			if (posY > GetScreenHeight() / 2 - 150 && posY < GetScreenHeight() / 2 + 150)  posY = GetRandomValue(0, GetScreenHeight());
 			else correctRange = true;
 		}
 
@@ -299,6 +315,7 @@ void InitGame(void)
 // Update game (one frame)
 void UpdateGame(void)
 {
+
 	if (!gameOver)
 	{
 		if (IsKeyPressed('P')) pause = !pause;
@@ -337,16 +354,33 @@ void UpdateGame(void)
 			//player->set_position.x += (player.speed.x * player.acceleration);
 			//player->set_position.y -= (player.speed.y * player.acceleration);
 
-			Vector2 position_aux = { player->get_speed().x * player->get_acceleration(),
-								 player->get_speed().y * player->get_acceleration() };
+			Vector2 position_aux = { player->get_position().x + (player->get_speed().x * player->get_acceleration()),
+									 player->get_position().y - (player->get_speed().y * player->get_acceleration()) };
 
 			player->set_position(position_aux);
 
 			// Collision logic: player vs walls
-			if (player->get_position().x > screenWidth + shipHeight) player->set_position({ player->get_position().x - (shipHeight), player->get_position().y });
-			else if (player->get_position().x < -(shipHeight)) player->set_position({ screenWidth + shipHeight ,player->get_position().y });
-			if (player->get_position().y > screenHeight + shipHeight) player->set_position({ player->get_position().x, player->get_position().y - (shipHeight) });
-			else if (player->get_position().y < -(shipHeight)) player->set_position({ player->get_position().x ,screenHeight + shipHeight });
+			if (player->get_position().x > GetScreenWidth() + player->get_ship_height())
+			{
+				std::cout << "X es mayor a la pantalla" << std::endl;
+				player->set_position({ 0 - (player->get_ship_height()), player->get_position().y });
+			}
+			else if (player->get_position().x < -(player->get_ship_height()))
+			{
+				std::cout << "X es menor a la pantalla" << std::endl;
+				player->set_position({ GetScreenWidth() + player->get_ship_height() ,player->get_position().y });
+			}
+
+			if (player->get_position().y > GetScreenHeight() + player->get_ship_height()) 
+			{
+				std::cout << "Y es mayor a la pantalla" << std::endl;
+				player->set_position({ player->get_position().x, 0 - (player->get_ship_height()) });
+			}
+			else if (player->get_position().y < -(player->get_ship_height()))
+			{
+				std::cout << "Y es menor a la pantalla" << std::endl;
+				player->set_position({ player->get_position().x ,GetScreenHeight() + player->get_ship_height() });
+			}
 
 			/*
 			if (player.position.y > (screenHeight + shipHeight)) player.position.y = -(shipHeight);
@@ -358,11 +392,13 @@ void UpdateGame(void)
 			{
 				for (int i = 0; i < PLAYER_MAX_BULLETS; i++)
 				{
-					if (bullet[i]->get_active())
+					if (!bullet[i]->get_active())
 					{
-						bullet[i]->set_position({ player->get_position().x + sin(player->get_rotation() * DEG2RAD) * (shipHeight), player->get_position().y - cos(player->get_rotation() * DEG2RAD) * (shipHeight) });
+						bullet[i]->set_position({ player->get_position().x + sin(player->get_rotation() * DEG2RAD) * (player->get_ship_height()),
+												  player->get_position().y - cos(player->get_rotation() * DEG2RAD) * (player->get_ship_height()) });
 						bullet[i]->set_active(true);
-						bullet[i]->set_speed({ 1.5 * sin(player->get_rotation() * DEG2RAD) * PLAYER_SPEED,  1.5 * cos(player->get_rotation() * DEG2RAD) * PLAYER_SPEED });
+						bullet[i]->set_speed({ static_cast<float>(1.5 * sin(player->get_rotation() * DEG2RAD) * PLAYER_SPEED),
+											   static_cast<float>(1.5 * cos(player->get_rotation() * DEG2RAD) * PLAYER_SPEED )});
 						bullet[i]->set_rotation(player->get_rotation());
 						break;
 					}
@@ -385,7 +421,7 @@ void UpdateGame(void)
 					bullet[i]->set_position({ bullet[i]->get_position().x + bullet[i]->get_speed().x, bullet[i]->get_position().y - bullet[i]->get_speed().y });
 
 					// Collision logic: bullet vs walls
-					if (bullet[i]->get_position().x > screenWidth + bullet[i]->get_radius())
+					if (bullet[i]->get_position().x > GetScreenWidth() + bullet[i]->get_radius())
 					{
 						bullet[i]->set_active(false);
 						bullet[i]->set_life(0);
@@ -395,7 +431,7 @@ void UpdateGame(void)
 						bullet[i]->set_active(false);
 						bullet[i]->set_life(0);
 					}
-					if (bullet[i]->get_position().y > screenHeight + bullet[i]->get_radius())
+					if (bullet[i]->get_position().y > GetScreenHeight() + bullet[i]->get_radius())
 					{
 						bullet[i]->set_active(false);
 						bullet[i]->set_life(0);
@@ -419,8 +455,8 @@ void UpdateGame(void)
 			}
 
 			// Collision logic: player vs meteors
-			player->set_collider({ player->get_position().x + sin(player->get_rotation() * DEG2RAD) * (shipHeight / 2.5f),
-								   player->get_position().y - cos(player->get_rotation() * DEG2RAD) * (shipHeight / 2.5f),
+			player->set_collider({ player->get_position().x + sin(player->get_rotation() * DEG2RAD) * (player->get_ship_height() / 2.5f),
+								   player->get_position().y - cos(player->get_rotation() * DEG2RAD) * (player->get_ship_height() / 2.5f),
 								   12 });
 
 			for (int a = 0; a < MAX_BIG_METEORS; a++)
@@ -449,15 +485,15 @@ void UpdateGame(void)
 
 					bigMeteor[i]->set_position({ bigMeteor[i]->get_position().x + bigMeteor[i]->get_speed().x,bigMeteor[i]->get_position().y + bigMeteor[i]->get_speed().y });
 
-					if (bigMeteor[i]->get_position().x > screenWidth + bigMeteor[i]->get_radius())
+					if (bigMeteor[i]->get_position().x > GetScreenWidth() + bigMeteor[i]->get_radius())
 						bigMeteor[i]->set_position({ -(bigMeteor[i]->get_radius()),bigMeteor[i]->get_position().y });
 					else if (bigMeteor[i]->get_position().x < 0 - bigMeteor[i]->get_radius())
-						bigMeteor[i]->set_position({ screenWidth + bigMeteor[i]->get_radius(),bigMeteor[i]->get_position().y });
+						bigMeteor[i]->set_position({ GetScreenWidth() + bigMeteor[i]->get_radius(),bigMeteor[i]->get_position().y });
 
-					if (bigMeteor[i]->get_position().y > screenHeight + bigMeteor[i]->get_radius())
+					if (bigMeteor[i]->get_position().y > GetScreenHeight() + bigMeteor[i]->get_radius())
 						bigMeteor[i]->set_position({ bigMeteor[i]->get_position().x,-(bigMeteor[i]->get_radius()) });
 					else if (bigMeteor[i]->get_position().y < 0 - bigMeteor[i]->get_radius())
-						bigMeteor[i]->set_position({ bigMeteor[i]->get_position().x,screenHeight + bigMeteor[i]->get_radius() });
+						bigMeteor[i]->set_position({ bigMeteor[i]->get_position().x,GetScreenHeight() + bigMeteor[i]->get_radius() });
 				}
 			}
 
@@ -468,15 +504,15 @@ void UpdateGame(void)
 				{
 					mediumMeteor[i]->set_position({ mediumMeteor[i]->get_position().x + mediumMeteor[i]->get_speed().x,mediumMeteor[i]->get_position().y + mediumMeteor[i]->get_speed().y });
 
-					if (mediumMeteor[i]->get_position().x > screenWidth + mediumMeteor[i]->get_radius())
+					if (mediumMeteor[i]->get_position().x > GetScreenWidth() + mediumMeteor[i]->get_radius())
 						mediumMeteor[i]->set_position({ -(mediumMeteor[i]->get_radius()),mediumMeteor[i]->get_position().y });
 					else if (mediumMeteor[i]->get_position().x < 0 - mediumMeteor[i]->get_radius())
-						mediumMeteor[i]->set_position({ screenWidth + mediumMeteor[i]->get_radius(),mediumMeteor[i]->get_position().y });
+						mediumMeteor[i]->set_position({ GetScreenWidth() + mediumMeteor[i]->get_radius(),mediumMeteor[i]->get_position().y });
 
-					if (mediumMeteor[i]->get_position().y > screenHeight + mediumMeteor[i]->get_radius())
+					if (mediumMeteor[i]->get_position().y > GetScreenHeight() + mediumMeteor[i]->get_radius())
 						mediumMeteor[i]->set_position({ mediumMeteor[i]->get_position().x,-(mediumMeteor[i]->get_radius()) });
 					else if (mediumMeteor[i]->get_position().y < 0 - mediumMeteor[i]->get_radius())
-						mediumMeteor[i]->set_position({ mediumMeteor[i]->get_position().x,screenHeight + mediumMeteor[i]->get_radius() });
+						mediumMeteor[i]->set_position({ mediumMeteor[i]->get_position().x,GetScreenHeight() + mediumMeteor[i]->get_radius() });
 				}
 			}
 
@@ -488,15 +524,15 @@ void UpdateGame(void)
 				{
 					smallMeteor[i]->set_position({ smallMeteor[i]->get_position().x + smallMeteor[i]->get_speed().x,smallMeteor[i]->get_position().y + smallMeteor[i]->get_speed().y });
 
-					if (smallMeteor[i]->get_position().x > screenWidth + smallMeteor[i]->get_radius())
+					if (smallMeteor[i]->get_position().x > GetScreenWidth() + smallMeteor[i]->get_radius())
 						smallMeteor[i]->set_position({ -(smallMeteor[i]->get_radius()),smallMeteor[i]->get_position().y });
 					else if (smallMeteor[i]->get_position().x < 0 - smallMeteor[i]->get_radius())
-						smallMeteor[i]->set_position({ screenWidth + smallMeteor[i]->get_radius(),smallMeteor[i]->get_position().y });
+						smallMeteor[i]->set_position({ GetScreenWidth() + smallMeteor[i]->get_radius(),smallMeteor[i]->get_position().y });
 
-					if (smallMeteor[i]->get_position().y > screenHeight + smallMeteor[i]->get_radius())
+					if (smallMeteor[i]->get_position().y > GetScreenHeight() + smallMeteor[i]->get_radius())
 						smallMeteor[i]->set_position({ mediumMeteor[i]->get_position().x,-(smallMeteor[i]->get_radius()) });
 					else if (smallMeteor[i]->get_position().y < 0 - smallMeteor[i]->get_radius())
-						smallMeteor[i]->set_position({ smallMeteor[i]->get_position().x,screenHeight + smallMeteor[i]->get_radius() });
+						smallMeteor[i]->set_position({ smallMeteor[i]->get_position().x,GetScreenHeight() + smallMeteor[i]->get_radius() });
 				}
 			}
 
@@ -541,42 +577,42 @@ void UpdateGame(void)
 					{
 						if (mediumMeteor[b]->get_active() && CheckCollisionCircles(bullet[i]->get_position(), bullet[i]->get_radius(), mediumMeteor[b]->get_position(), mediumMeteor[b]->get_radius()))
 						{
-							bullet[i].active = false;
-							bullet[i].lifeSpawn = 0;
-							mediumMeteor[b].active = false;
+							bullet[i]->set_active(false);
+							bullet[i]->set_life(0);
+							mediumMeteor[b]->set_active(false);
 							destroyedMeteorsCount++;
 
 							for (int j = 0; j < 2; j++)
 							{
 								if (smallMeteorsCount % 2 == 0)
 								{
-									smallMeteor[smallMeteorsCount].position = (Vector2){ mediumMeteor[b].position.x, mediumMeteor[b].position.y };
-									smallMeteor[smallMeteorsCount].speed = (Vector2){ cos(bullet[i].rotation * DEG2RAD) * METEORS_SPEED * -1, sin(bullet[i].rotation * DEG2RAD) * METEORS_SPEED * -1 };
+									smallMeteor[smallMeteorsCount]->set_position({ mediumMeteor[b]->get_position().x, mediumMeteor[b]->get_position().y });
+									smallMeteor[smallMeteorsCount]->set_speed({ cos(bullet[i]->get_rotation() * DEG2RAD) * METEORS_SPEED * -1, sin(bullet[i]->get_rotation() * DEG2RAD) * METEORS_SPEED * -1 });
 								}
 								else
 								{
-									smallMeteor[smallMeteorsCount].position = (Vector2){ mediumMeteor[b].position.x, mediumMeteor[b].position.y };
-									smallMeteor[smallMeteorsCount].speed = (Vector2){ cos(bullet[i].rotation * DEG2RAD) * METEORS_SPEED, sin(bullet[i].rotation * DEG2RAD) * METEORS_SPEED };
+									smallMeteor[smallMeteorsCount]->set_position({ mediumMeteor[b]->get_position().x, mediumMeteor[b]->get_position().y });
+									smallMeteor[smallMeteorsCount]->set_speed({ sin(bullet[i]->get_rotation() * DEG2RAD) * METEORS_SPEED * -1, sin(bullet[i]->get_rotation() * DEG2RAD) * METEORS_SPEED * -1 });
 								}
 
-								smallMeteor[smallMeteorsCount].active = true;
+								smallMeteor[smallMeteorsCount]->set_active(true);
 								smallMeteorsCount++;
 							}
-							//mediumMeteor[b].position = (Vector2){-100, -100};
-							mediumMeteor[b].color = GREEN;
+							mediumMeteor[b]->set_position({-100,-100});
+							mediumMeteor[b]->set_color(GREEN);
 							b = MAX_MEDIUM_METEORS;
 						}
 					}
 
 					for (int c = 0; c < MAX_SMALL_METEORS; c++)
 					{
-						if (smallMeteor[c].active && CheckCollisionCircles(bullet[i].position, bullet[i].radius, smallMeteor[c].position, smallMeteor[c].radius))
+						if (smallMeteor[c]->get_active() && CheckCollisionCircles(bullet[i]->get_position(), bullet[i]->get_radius(), smallMeteor[c]->get_position(), smallMeteor[c]->get_radius()))
 						{
-							bullet[i].active = false;
-							bullet[i].lifeSpawn = 0;
-							smallMeteor[c].active = false;
+							bullet[i]->set_active(false);
+							bullet[i]->set_life(0);
+							smallMeteor[c]->set_active(false);
 							destroyedMeteorsCount++;
-							smallMeteor[c].color = YELLOW;
+							smallMeteor[c]->set_color(YELLOW);
 							// smallMeteor[c].position = (Vector2){-100, -100};
 							c = MAX_SMALL_METEORS;
 						}
@@ -598,7 +634,7 @@ void UpdateGame(void)
 }
 
 // Draw game (one frame)
-void DrawGame(void)
+void DrawGame()
 {
 	BeginDrawing();
 
@@ -607,41 +643,47 @@ void DrawGame(void)
 	if (!gameOver)
 	{
 		// Draw spaceship
-		Vector2 v1 = { player.position.x + sinf(player.rotation * DEG2RAD) * (shipHeight), player.position.y - cosf(player.rotation * DEG2RAD) * (shipHeight) };
-		Vector2 v2 = { player.position.x - cosf(player.rotation * DEG2RAD) * (PLAYER_BASE_SIZE / 2), player.position.y - sinf(player.rotation * DEG2RAD) * (PLAYER_BASE_SIZE / 2) };
-		Vector2 v3 = { player.position.x + cosf(player.rotation * DEG2RAD) * (PLAYER_BASE_SIZE / 2), player.position.y + sinf(player.rotation * DEG2RAD) * (PLAYER_BASE_SIZE / 2) };
+		Vector2 v1 = { player->get_position().x + sinf(player->get_rotation() * DEG2RAD) * (player->get_ship_height()), player->get_position().y - cosf(player->get_rotation() * DEG2RAD) * (player->get_ship_height()) };
+		Vector2 v2 = { player->get_position().x - cosf(player->get_rotation() * DEG2RAD) * (PLAYER_BASE_SIZE / 2), player->get_position().y - sinf(player->get_rotation() * DEG2RAD) * (PLAYER_BASE_SIZE / 2) };
+		Vector2 v3 = { player->get_position().x + cosf(player->get_rotation() * DEG2RAD) * (PLAYER_BASE_SIZE / 2), player->get_position().y + sinf(player->get_rotation() * DEG2RAD) * (PLAYER_BASE_SIZE / 2) };
 		DrawTriangle(v1, v2, v3, MAROON);
 
 		// Draw meteors
 		for (int i = 0; i < MAX_BIG_METEORS; i++)
 		{
-			if (bigMeteor[i].active) DrawCircleV(bigMeteor[i].position, bigMeteor[i].radius, DARKGRAY);
-			else DrawCircleV(bigMeteor[i].position, bigMeteor[i].radius, Fade(LIGHTGRAY, 0.3f));
+			if (bigMeteor[i]->get_active()) 
+				DrawCircleV(bigMeteor[i]->get_position(), bigMeteor[i]->get_radius(), DARKGRAY);
+			else DrawCircleV(bigMeteor[i]->get_position(), bigMeteor[i]->get_radius(), Fade(LIGHTGRAY, 0.3f));
 		}
 
 		for (int i = 0; i < MAX_MEDIUM_METEORS; i++)
 		{
-			if (mediumMeteor[i].active) DrawCircleV(mediumMeteor[i].position, mediumMeteor[i].radius, GRAY);
-			else DrawCircleV(mediumMeteor[i].position, mediumMeteor[i].radius, Fade(LIGHTGRAY, 0.3f));
+			if (mediumMeteor[i]->get_active())
+				DrawCircleV(mediumMeteor[i]->get_position(), mediumMeteor[i]->get_radius(), GRAY);
+			else 
+				DrawCircleV(mediumMeteor[i]->get_position(), mediumMeteor[i]->get_radius(), Fade(LIGHTGRAY, 0.3f));
 		}
 
 		for (int i = 0; i < MAX_SMALL_METEORS; i++)
 		{
-			if (smallMeteor[i].active) DrawCircleV(smallMeteor[i].position, smallMeteor[i].radius, GRAY);
-			else DrawCircleV(smallMeteor[i].position, smallMeteor[i].radius, Fade(LIGHTGRAY, 0.3f));
+			if (smallMeteor[i]->get_active()) DrawCircleV(smallMeteor[i]->get_position(), smallMeteor[i]->get_radius(), GRAY);
+			else DrawCircleV(smallMeteor[i]->get_position(), smallMeteor[i]->get_radius(), Fade(LIGHTGRAY, 0.3f));
 		}
 
 		// Draw bullet
 		for (int i = 0; i < PLAYER_MAX_BULLETS; i++)
 		{
-			if (bullet[i].active) DrawCircleV(bullet[i].position, bullet[i].radius, BLACK);
+			if (bullet[i]->get_active()) DrawCircleV(bullet[i]->get_position(), bullet[i]->get_radius(), BLACK);
 		}
+		|
+		if (victory) DrawText("VICTORY", GetScreenWidth() / 2 - MeasureText("VICTORY", 20) / 2, GetScreenHeight() / 2, 20, LIGHTGRAY);
 
-		if (victory) DrawText("VICTORY", screenWidth / 2 - MeasureText("VICTORY", 20) / 2, screenHeight / 2, 20, LIGHTGRAY);
-
-		if (pause) DrawText("GAME PAUSED", screenWidth / 2 - MeasureText("GAME PAUSED", 40) / 2, screenHeight / 2 - 40, 40, GRAY);
+		if (pause) DrawText("GAME PAUSED", GetScreenWidth() / 2 - MeasureText("GAME PAUSED", 40) / 2, GetScreenHeight() / 2 - 40, 40, GRAY);
 	}
 	else DrawText("PRESS [ENTER] TO PLAY AGAIN", GetScreenWidth() / 2 - MeasureText("PRESS [ENTER] TO PLAY AGAIN", 20) / 2, GetScreenHeight() / 2 - 50, 20, GRAY);
+
+
+
 
 	EndDrawing();
 }
