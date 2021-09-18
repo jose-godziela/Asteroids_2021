@@ -1,106 +1,29 @@
-#include <cmath>
 #include <iostream>
 
 #include "raylib.h"
+#include "Player.h"
+#include "Bullet.h"
 //----------------------------------------------------------------------------------
 // Some Defines
 //----------------------------------------------------------------------------------
-#define PLAYER_BASE_SIZE    20.0f
-#define PLAYER_SPEED        6.0f
-#define PLAYER_MAX_BULLETS   10
 
-#define METEORS_SPEED       2
-#define MAX_BIG_METEORS     4
-#define MAX_MEDIUM_METEORS  8
-#define MAX_SMALL_METEORS   16
+const int METEORS_SPEED = 2;
+const int MAX_BIG_METEORS = 4;
+const int MAX_MEDIUM_METEORS = 8;
+const int MAX_SMALL_METEORS = 16;
 
 #define FPS 60
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
-class Player {
-private:
-	Vector2 _position;
-	Vector2 _speed;
-	float   _acceleration;
-	float   _rotation;
-	float _ship_height;
-	Vector3 _collider;
-	Color   _color;
-public:
-	Player();
-	~Player();
-	void set_position(Vector2 position) { _position = position; };
-	void set_speed_X(float x) { _speed.x = x; };
-	void set_speed_Y(float y) { _speed.y = y; };
-	void set_acceleration(float acceleration) { _acceleration = acceleration; };
-	void set_rotation(float rotation) { _rotation = rotation; };
-	void set_ship_height(float height) { _ship_height = height; };
-	void set_collider(Vector3 collider) { _collider = collider; };
-	void set_color(Color color) { _color = color; };
-	Vector2 get_position() { return _position; };
-	Vector2 get_speed() { return _speed; };
-	float get_acceleration() { return _acceleration; };
-	float get_rotation() { return _rotation; };
-	float get_ship_height() { return _ship_height; };
-	Vector3 get_collider() { return _collider; };
-	Color get_color() { return _color; };
 
-};
 
-Player::Player()
-{
-	set_ship_height((PLAYER_BASE_SIZE / 2) / tanf(20 * DEG2RAD));
-	set_position({ static_cast<float>(GetScreenWidth()) / 2, GetScreenHeight() / 2 - get_ship_height()/ 2 });
-	set_speed_X(0);
-	set_speed_Y(0);
-	set_acceleration(0.0f);
-	set_rotation(0.0f);
-	set_color(LIGHTGRAY);
-	set_collider({ get_position().x + sin(get_rotation() * DEG2RAD) * (get_ship_height() / 2.5f), get_position().y - cos(get_rotation() * DEG2RAD) * (get_ship_height() / 2.5f), 12 });
-}
-Player::~Player()
-{
 
-}
 
-class Bullet {
-private:
-	Vector2 _position;
-	Vector2 _speed;
-	float   _radius;
-	float   _rotation;
-	int     _life;
-	bool    _active;
-	Color   _color;
-public:
-	Bullet();
-	~Bullet();
-	void set_position(Vector2 position) { _position = position; };
-	void set_speed(Vector2 speed) { _speed = speed; };
-	void set_radius(float radius) { _radius = radius; };
-	void set_rotation(float rotation) { _rotation = rotation; };
-	void set_life(int life) { _life = life; };
-	void set_active(bool active) { _active = active; };
-	void set_color(Color color) { _color = color; };
-	Vector2 get_position() { return _position; };
-	Vector2	get_speed() { return _speed; };
-	float	get_radius() { return _radius; };
-	float	get_rotation() { return _rotation; };
-	int		get_life() { return _life; };
-	bool	get_active() { return _active; };
-	Color	get_color() { return _color; };
-};
 
-Bullet::Bullet()
-{
 
-}
-Bullet::~Bullet()
-{
 
-}
 
 class Meteor {
 private:
@@ -206,9 +129,9 @@ void InitGame(void)
 	bool correctRange = false;
 	victory = false;
 	pause = false;
-		
+
 	player = new Player();
-	
+
 	Vector2 aux_speed = { 0,0 };
 
 	destroyedMeteorsCount = 0;
@@ -371,7 +294,7 @@ void UpdateGame(void)
 				player->set_position({ GetScreenWidth() + player->get_ship_height() ,player->get_position().y });
 			}
 
-			if (player->get_position().y > GetScreenHeight() + player->get_ship_height()) 
+			if (player->get_position().y > GetScreenHeight() + player->get_ship_height())
 			{
 				std::cout << "Y es mayor a la pantalla" << std::endl;
 				player->set_position({ player->get_position().x, 0 - (player->get_ship_height()) });
@@ -398,7 +321,7 @@ void UpdateGame(void)
 												  player->get_position().y - cos(player->get_rotation() * DEG2RAD) * (player->get_ship_height()) });
 						bullet[i]->set_active(true);
 						bullet[i]->set_speed({ static_cast<float>(1.5 * sin(player->get_rotation() * DEG2RAD) * PLAYER_SPEED),
-											   static_cast<float>(1.5 * cos(player->get_rotation() * DEG2RAD) * PLAYER_SPEED )});
+											   static_cast<float>(1.5 * cos(player->get_rotation() * DEG2RAD) * PLAYER_SPEED) });
 						bullet[i]->set_rotation(player->get_rotation());
 						break;
 					}
@@ -554,14 +477,14 @@ void UpdateGame(void)
 							{
 								if (midMeteorsCount % 2 == 0)
 								{
-									mediumMeteor[midMeteorsCount]->set_position( bigMeteor[a]->get_position());
+									mediumMeteor[midMeteorsCount]->set_position(bigMeteor[a]->get_position());
 									mediumMeteor[midMeteorsCount]->set_speed({ cos(bullet[i]->get_rotation() * DEG2RAD) * METEORS_SPEED * -1, sin(bullet[i]->get_rotation() * DEG2RAD) * METEORS_SPEED * -1 });
 								}
 								else
 								{
 									mediumMeteor[midMeteorsCount]->set_position(bigMeteor[a]->get_position());
 									mediumMeteor[midMeteorsCount]->set_speed({ cos(bullet[i]->get_rotation() * DEG2RAD) * METEORS_SPEED, sin(bullet[i]->get_rotation() * DEG2RAD) * METEORS_SPEED });
-										;
+									;
 								}
 
 								mediumMeteor[midMeteorsCount]->set_active(true);
@@ -598,7 +521,7 @@ void UpdateGame(void)
 								smallMeteor[smallMeteorsCount]->set_active(true);
 								smallMeteorsCount++;
 							}
-							mediumMeteor[b]->set_position({-100,-100});
+							mediumMeteor[b]->set_position({ -100,-100 });
 							mediumMeteor[b]->set_color(GREEN);
 							b = MAX_MEDIUM_METEORS;
 						}
@@ -651,7 +574,7 @@ void DrawGame()
 		// Draw meteors
 		for (int i = 0; i < MAX_BIG_METEORS; i++)
 		{
-			if (bigMeteor[i]->get_active()) 
+			if (bigMeteor[i]->get_active())
 				DrawCircleV(bigMeteor[i]->get_position(), bigMeteor[i]->get_radius(), DARKGRAY);
 			else DrawCircleV(bigMeteor[i]->get_position(), bigMeteor[i]->get_radius(), Fade(LIGHTGRAY, 0.3f));
 		}
@@ -660,7 +583,7 @@ void DrawGame()
 		{
 			if (mediumMeteor[i]->get_active())
 				DrawCircleV(mediumMeteor[i]->get_position(), mediumMeteor[i]->get_radius(), GRAY);
-			else 
+			else
 				DrawCircleV(mediumMeteor[i]->get_position(), mediumMeteor[i]->get_radius(), Fade(LIGHTGRAY, 0.3f));
 		}
 
@@ -675,8 +598,8 @@ void DrawGame()
 		{
 			if (bullet[i]->get_active()) DrawCircleV(bullet[i]->get_position(), bullet[i]->get_radius(), BLACK);
 		}
-		|
-		if (victory) DrawText("VICTORY", GetScreenWidth() / 2 - MeasureText("VICTORY", 20) / 2, GetScreenHeight() / 2, 20, LIGHTGRAY);
+		
+			if (victory) DrawText("VICTORY", GetScreenWidth() / 2 - MeasureText("VICTORY", 20) / 2, GetScreenHeight() / 2, 20, LIGHTGRAY);
 
 		if (pause) DrawText("GAME PAUSED", GetScreenWidth() / 2 - MeasureText("GAME PAUSED", 40) / 2, GetScreenHeight() / 2 - 40, 40, GRAY);
 	}
