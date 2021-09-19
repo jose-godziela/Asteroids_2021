@@ -24,7 +24,7 @@ const int FPS = 60;
 // Global Variables Declaration
 //------------------------------------------------------------------------------------
 
-static bool gameOver = false;
+static bool gameOver = true;
 static bool pause = false;
 static bool victory = false;
 
@@ -36,9 +36,15 @@ Meteor* bigMeteor[MAX_BIG_METEORS];
 Meteor* mediumMeteor[MAX_MEDIUM_METEORS];
 Meteor* smallMeteor[MAX_SMALL_METEORS];
 
-static int midMeteorsCount = 0;
-static int smallMeteorsCount = 0;
-static int destroyedMeteorsCount = 0;
+int midMeteorsCount = 0;
+int smallMeteorsCount = 0;
+int destroyedMeteorsCount = 0;
+
+//These are to get the rotation of the ship using the mouse
+Vector2 mouse_pos = {-100.0f,-100.0f};
+Vector2 ship_pos_aux;
+Vector2 ship_direction;
+float ship_angle;
 
 //------------------------------------------------------------------------------------
 // Module Functions Declaration (local)
@@ -104,8 +110,12 @@ void InitGame(void)
 
 	for (int i = 0; i < PLAYER_MAX_BULLETS; i++)
 	{
-		init_bullets(bullet[i],PLAYER_MAX_BULLETS);
+		init_bullets(bullet[i], PLAYER_MAX_BULLETS);
 	}
+
+	//The reason why the constructor of bigMeteor is MUCH larger than the other 2
+	//Is because the other 2 will only appear after the bigMeteor gets destroyed
+	//in their respective order (big -> medium -> small)
 
 	for (int i = 0; i < MAX_BIG_METEORS; i++)
 	{
@@ -202,9 +212,39 @@ void UpdateGame(void)
 		if (!pause)
 		{
 			// Player logic: rotation
-			float player_rotation = player->get_rotation();
-			if (IsKeyDown(KEY_LEFT))  player->set_rotation(player_rotation -= 5);
-			if (IsKeyDown(KEY_RIGHT)) player->set_rotation(player_rotation += 5);
+
+			mouse_pos = GetMousePosition();
+			std::cout << "mouse pos x: " << mouse_pos.x << std::endl;
+			std::cout << "mouse pos y: " << mouse_pos.y << std::endl;
+			if(mouse_pos.x > 0 || mouse_pos.y > 0)
+			{
+				ship_pos_aux = player->get_position();
+				ship_direction = { mouse_pos.x - ship_pos_aux.x,mouse_pos.y - ship_pos_aux.y };
+				ship_angle = atan(ship_direction.y / ship_direction.x);
+				ship_angle = ship_angle * 180 / PI;
+
+				//This will add ° to the final value depending of the quadrant they are in
+				//Quadrant I doesn't need to change, but II III and IV needs to do this
+				//Quadrant II & III just needs to do the same thing, so they will be fused into 1
+
+				if ((ship_direction.x < 0 && ship_direction.y > 0) || (ship_direction.x < 0 && ship_direction.y < 0))
+				{
+					ship_angle += 180;
+				}
+				if (ship_direction.x > 0 && ship_direction.y < 0)
+				{
+					ship_angle += 360;
+				}
+
+				std::cout << ship_angle << "" << std::endl;
+				player->set_rotation(ship_angle);
+
+			}
+
+			//Old way to get the rotation
+			//float player_rotation = player->get_rotation();
+			//if (IsKeyDown(KEY_LEFT))  player->set_rotation(player_rotation -= 5);
+			//if (IsKeyDown(KEY_RIGHT)) player->set_rotation(player_rotation += 5);
 
 			// Player logic: speed
 			player->set_speed_X(sin(player->get_rotation() * DEG2RAD) * PLAYER_SPEED);
@@ -229,16 +269,14 @@ void UpdateGame(void)
 				else if (player->get_acceleration() < 0) player->set_acceleration(0);
 			}
 
-			// Player logic: movement
-			//player->set_position.x += (player.speed.x * player.acceleration);
-			//player->set_position.y -= (player.speed.y * player.acceleration);
-
+			//couldn't find a functional way to make this, so until i found that, this should work
 			Vector2 position_aux = { player->get_position().x + (player->get_speed().x * player->get_acceleration()),
 									 player->get_position().y - (player->get_speed().y * player->get_acceleration()) };
 
 			player->set_position(position_aux);
 
-			// Collision logic: player vs walls
+			// checks if the players goes out of the screen, and then makes the "pac-man" effect
+			//both in X and Y axis
 			if (player->get_position().x > GetScreenWidth() + player->get_ship_height())
 			{
 				std::cout << "X es mayor a la pantalla" << std::endl;
@@ -261,10 +299,6 @@ void UpdateGame(void)
 				player->set_position({ player->get_position().x ,GetScreenHeight() + player->get_ship_height() });
 			}
 
-			/*
-			if (player.position.y > (screenHeight + shipHeight)) player.position.y = -(shipHeight);
-			else if (player.position.y < -(shipHeight)) player.position.y = screenHeight + shipHeight;
-			*/
 
 			// Player bullet logic
 			if (IsKeyPressed(KEY_SPACE))
@@ -504,7 +538,7 @@ void UpdateGame(void)
 	}
 	else
 	{
-		if (IsKeyPressed(KEY_ENTER))
+		if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
 		{
 			InitGame();
 			gameOver = false;
@@ -554,12 +588,12 @@ void DrawGame()
 		{
 			if (bullet[i]->get_active()) DrawCircleV(bullet[i]->get_position(), bullet[i]->get_radius(), BLACK);
 		}
-		
-			if (victory) DrawText("VICTORY", GetScreenWidth() / 2 - MeasureText("VICTORY", 20) / 2, GetScreenHeight() / 2, 20, LIGHTGRAY);
+
+		if (victory) DrawText("VICTORY", GetScreenWidth() / 2 - MeasureText("VICTORY", 20) / 2, GetScreenHeight() / 2, 20, LIGHTGRAY);
 
 		if (pause) DrawText("GAME PAUSED", GetScreenWidth() / 2 - MeasureText("GAME PAUSED", 40) / 2, GetScreenHeight() / 2 - 40, 40, GRAY);
 	}
-	else DrawText("PRESS [ENTER] TO PLAY AGAIN", GetScreenWidth() / 2 - MeasureText("PRESS [ENTER] TO PLAY AGAIN", 20) / 2, GetScreenHeight() / 2 - 50, 20, GRAY);
+	else DrawText("PRESS [LEFT MOUSE BUTTON] TO PLAY AGAIN", GetScreenWidth() / 2 - MeasureText("PRESS [LEFT MOUSE BUTTON] TO PLAY AGAIN", 20) / 2, GetScreenHeight() / 2 - 50, 20, GRAY);
 
 
 
