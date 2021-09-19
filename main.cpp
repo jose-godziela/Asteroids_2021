@@ -212,7 +212,7 @@ void UpdateGame(void)
 		if (!pause)
 		{
 			// Player logic: rotation
-
+			float angle_fix = 1.57f;
 			mouse_pos = GetMousePosition();
 			std::cout << "mouse pos x: " << mouse_pos.x << std::endl;
 			std::cout << "mouse pos y: " << mouse_pos.y << std::endl;
@@ -220,17 +220,17 @@ void UpdateGame(void)
 			{
 				ship_pos_aux = player->get_position();
 				ship_direction = { mouse_pos.x - ship_pos_aux.x,mouse_pos.y - ship_pos_aux.y };
-				ship_angle = atan(ship_direction.y / ship_direction.x);
+				ship_angle = atan2(ship_direction.y,ship_direction.x) + angle_fix;
 				ship_angle = ship_angle * 180 / PI;
 
 				//This will add ° to the final value depending of the quadrant they are in
 				//Quadrant I doesn't need to change, but II III and IV needs to do this
 				//Quadrant II & III just needs to do the same thing, so they will be fused into 1
 
-				if ((ship_direction.x < 0 && ship_direction.y > 0) || (ship_direction.x < 0 && ship_direction.y < 0))
-				{
-					ship_angle += 180;
-				}
+				//if ((ship_direction.x < 0 && ship_direction.y > 0) || (ship_direction.x < 0 && ship_direction.y < 0))
+				//{
+				//	ship_angle += 180;
+				//}
 				if (ship_direction.x > 0 && ship_direction.y < 0)
 				{
 					ship_angle += 360;
@@ -253,7 +253,7 @@ void UpdateGame(void)
 			float player_accel_aux = player->get_acceleration();
 
 			// Player logic: acceleration
-			if (IsKeyDown(KEY_UP))
+			if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
 			{
 				if (player->get_acceleration() < 1)
 					player->set_acceleration(player_accel_aux += 0.04f);
@@ -261,11 +261,6 @@ void UpdateGame(void)
 			else
 			{
 				if (player->get_acceleration() > 0) player->set_acceleration(player_accel_aux -= 0.02f);
-				else if (player->get_acceleration() < 0) player->set_acceleration(0);
-			}
-			if (IsKeyDown(KEY_DOWN))
-			{
-				if (player->get_acceleration() > 0) player->set_acceleration(player_accel_aux -= 0.04f);
 				else if (player->get_acceleration() < 0) player->set_acceleration(0);
 			}
 
@@ -301,7 +296,7 @@ void UpdateGame(void)
 
 
 			// Player bullet logic
-			if (IsKeyPressed(KEY_SPACE))
+			if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON))
 			{
 				for (int i = 0; i < PLAYER_MAX_BULLETS; i++)
 				{
