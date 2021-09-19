@@ -1,4 +1,6 @@
-#pragma once
+#ifndef BULLET_H
+#define BULLET_H
+
 #include "raylib.h"
 
 
@@ -24,9 +26,12 @@ public:
 	void set_color(Color color);
 	Vector2 get_position();
 	Vector2	get_speed();
-	float	get_radius();
-	float	get_rotation();
-	int		get_life();
-	bool	get_active();
-	Color	get_color();
+	float get_radius();
+	float get_rotation();
+	int	get_life();
+	bool get_active();
+	Color get_color();
 };
+
+void init_bullets(Bullet* &bullet, int max_bullets);
+#endif

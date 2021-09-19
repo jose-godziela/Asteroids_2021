@@ -1,4 +1,5 @@
-#pragma once
+#ifndef METEOR_H
+#define METEOR_H
 #include "raylib.h"
 
 class Meteor {
@@ -11,14 +12,15 @@ private:
 public:
 	Meteor();
 	~Meteor();
-	void set_position(Vector2 position) { _position = position; };
-	void set_speed(Vector2 speed) { _speed = speed; };
-	void set_radius(float radius) { _radius = radius; };
-	void set_active(bool active) { _active = active; };
-	void set_color(Color color) { _color = color; };
+	void set_position(Vector2 position);
+	void set_speed(Vector2 speed);
+	void set_radius(float radius);
+	void set_active(bool active);
+	void set_color(Color color);
 	Vector2 get_position();
 	Vector2 get_speed();
 	float get_radius();
 	bool get_active();
 	Color get_color();
 };
+#endif

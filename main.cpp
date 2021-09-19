@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "Player.h"
 #include "Bullet.h"
+#include "Meteor.h"
 //----------------------------------------------------------------------------------
 // Some Defines
 //----------------------------------------------------------------------------------
@@ -12,49 +13,12 @@ const int MAX_BIG_METEORS = 4;
 const int MAX_MEDIUM_METEORS = 8;
 const int MAX_SMALL_METEORS = 16;
 
-#define FPS 60
+const int FPS = 60;
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
 
-
-
-
-
-
-
-
-class Meteor {
-private:
-	Vector2 _position;
-	Vector2 _speed;
-	float   _radius;
-	bool    _active;
-	Color   _color;
-public:
-	Meteor();
-	~Meteor();
-	void set_position(Vector2 position) { _position = position; };
-	void set_speed(Vector2 speed) { _speed = speed; };
-	void set_radius(float radius) { _radius = radius; };
-	void set_active(bool active) { _active = active; };
-	void set_color(Color color) { _color = color; };
-	Vector2 get_position() { return _position; };
-	Vector2 get_speed() { return _speed; };
-	float get_radius() { return _radius; };
-	bool get_active() { return _active; };
-	Color get_color() { return _color; };
-};
-
-Meteor::Meteor()
-{
-
-}
-Meteor::~Meteor()
-{
-
-}
 
 //------------------------------------------------------------------------------------
 // Global Variables Declaration
@@ -79,11 +43,11 @@ static int destroyedMeteorsCount = 0;
 //------------------------------------------------------------------------------------
 // Module Functions Declaration (local)
 //------------------------------------------------------------------------------------
-static void InitGame(void);         // Initialize game
-static void UpdateGame(void);       // Update game (one frame)
-static void DrawGame(void);         // Draw game (one frame)
-static void UnloadGame(void);       // Unload game
-static void UpdateDrawFrame(void);  // Update and Draw (one frame)
+void InitGame();         // Initialize game
+void UpdateGame();       // Update game (one frame)
+void DrawGame();         // Draw game (one frame)
+void UnloadGame();       // Unload game
+void UpdateDrawFrame();  // Update and Draw (one frame)
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -130,25 +94,17 @@ void InitGame(void)
 	victory = false;
 	pause = false;
 
+
+
 	player = new Player();
 
 	Vector2 aux_speed = { 0,0 };
 
 	destroyedMeteorsCount = 0;
 
-	// Initialization bullet
 	for (int i = 0; i < PLAYER_MAX_BULLETS; i++)
 	{
-		bullet[i] = new Bullet();
-		Vector2 pos_init = { 0,0 };
-		Vector2 speed_init = { 0,0 };
-		float aux_radius = 2.0f;
-		bullet[i]->set_position(pos_init);
-		bullet[i]->set_speed(speed_init);
-		bullet[i]->set_radius(aux_radius);
-		bullet[i]->set_active(false);
-		bullet[i]->set_life(0);
-		bullet[i]->set_color(WHITE);
+		init_bullets(bullet[i],PLAYER_MAX_BULLETS);
 	}
 
 	for (int i = 0; i < MAX_BIG_METEORS; i++)

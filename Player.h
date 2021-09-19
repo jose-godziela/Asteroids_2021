@@ -1,3 +1,5 @@
+#ifndef PLAYER_H
+#define PLAYER_H
 #include <cmath>
 
 #include "raylib.h"
@@ -18,20 +20,23 @@ private:
 public:
 	Player();
 	~Player();
-	void set_position(Vector2 position) { _position = position; };
-	void set_speed_X(float x) { _speed.x = x; };
-	void set_speed_Y(float y) { _speed.y = y; };
-	void set_acceleration(float acceleration) { _acceleration = acceleration; };
-	void set_rotation(float rotation) { _rotation = rotation; };
-	void set_ship_height(float height) { _ship_height = height; };
-	void set_collider(Vector3 collider) { _collider = collider; };
-	void set_color(Color color) { _color = color; };
-	Vector2 get_position() { return _position; };
-	Vector2 get_speed() { return _speed; };
-	float get_acceleration() { return _acceleration; };
-	float get_rotation() { return _rotation; };
-	float get_ship_height() { return _ship_height; };
-	Vector3 get_collider() { return _collider; };
-	Color get_color() { return _color; };
+	void set_position(Vector2 position);
+	void set_speed_X(float x);
+	void set_speed_Y(float y);
+	void set_acceleration(float acceleration);
+	void set_rotation(float rotation);
+	void set_ship_height(float height);
+	void set_collider(Vector3 collider);
+	void set_color(Color color);
+	Vector2 get_position();
+	Vector2 get_speed();
+	float get_acceleration();
+	float get_rotation();
+	float get_ship_height();
+	Vector3 get_collider();
+	Color get_color();
 
 };
+
+#endif
+

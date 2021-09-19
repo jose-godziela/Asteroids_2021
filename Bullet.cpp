@@ -71,3 +71,17 @@ Color Bullet::get_color()
 {
 	return _color;
 }
+
+void init_bullets(Bullet* &bullet, int max_bullets)
+{
+		bullet = new Bullet();
+		Vector2 pos_init = { 0,0 };
+		Vector2 speed_init = { 0,0 };
+		float aux_radius = 2.0f;
+		bullet->set_position(pos_init);
+		bullet->set_speed(speed_init);
+		bullet->set_radius(aux_radius);
+		bullet->set_active(false);
+		bullet->set_life(0);
+		bullet->set_color(WHITE);
+}
