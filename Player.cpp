@@ -49,6 +49,11 @@ void Player::set_color(Color color)
 {
 	_color = color;
 };
+void Player::set_texture(Texture2D texture)
+{
+	_texture = texture;
+}
+
 Vector2 Player::get_position()
 {
 	return _position;

@@ -17,6 +17,7 @@ private:
 	float _ship_height;
 	Vector3 _collider;
 	Color   _color;
+	Texture2D _texture;
 public:
 	Player();
 	~Player();
@@ -28,6 +29,7 @@ public:
 	void set_ship_height(float height);
 	void set_collider(Vector3 collider);
 	void set_color(Color color);
+	void set_texture(Texture2D texture);
 	Vector2 get_position();
 	Vector2 get_speed();
 	float get_acceleration();
@@ -35,7 +37,7 @@ public:
 	float get_ship_height();
 	Vector3 get_collider();
 	Color get_color();
-
+	Texture2D get_texture();
 };
 
 #endif
