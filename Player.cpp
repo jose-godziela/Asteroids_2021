@@ -3,14 +3,14 @@
 Player::Player()
 {
 
-		set_ship_height((PLAYER_BASE_SIZE / 2) / tanf(20 * DEG2RAD));
-		set_position({ static_cast<float>(GetScreenWidth()) / 2, GetScreenHeight() / 2 - get_ship_height() / 2 });
-		set_speed_X(0);
-		set_speed_Y(0);
-		set_acceleration(0.0f);
-		set_rotation(0.0f);
-		set_color(LIGHTGRAY);
-		set_collider({ get_position().x + sin(get_rotation() * DEG2RAD) * (get_ship_height() / 2.5f), get_position().y - cos(get_rotation() * DEG2RAD) * (get_ship_height() / 2.5f), 12 });
+	set_ship_height((PLAYER_BASE_SIZE / 2) / tanf(20 * DEG2RAD));
+	set_position({ static_cast<float>(GetScreenWidth()) / 2, GetScreenHeight() / 2 - get_ship_height() / 2 });
+	set_speed_X(0);
+	set_speed_Y(0);
+	set_acceleration(0.0f);
+	set_rotation(0.0f);
+	set_color(LIGHTGRAY);
+	set_collider({ get_position().x + sin(get_rotation() * DEG2RAD) * (get_ship_height() / 2.5f), get_position().y - cos(get_rotation() * DEG2RAD) * (get_ship_height() / 2.5f), 12 });
 
 };
 Player::~Player()
